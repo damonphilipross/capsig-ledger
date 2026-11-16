@@ -2,7 +2,7 @@
 # and every early close, as <created_at UTC> <close_id> <sha256> closes <call_id>.
 # Verify a call or close: sha256 of its canonical JSON (GET /api/calls, or ask the author) equals the hash here.
 # Calls and closes are append-only; a correction is a new call that supersedes the old one.
-# 3 calls, 1 closes. Generated 2026-11-16T08:01:37.001Z.
+# 3 calls, 1 closes. Generated 2026-11-16T18:38:48.044Z.
 
 ## 2026-11-10 digest 2a1b04b250055d98057df1b463a2f477b1f9fb1025df695d357641b4dcadfc0b
 2026-11-10T20:09:04.756Z 9de2d625-373a-479b-8b64-42bb9471748c a3fc034ffc88814622c523920a29e0a6ff47742a661bfbfeba5d00aa207642f0
