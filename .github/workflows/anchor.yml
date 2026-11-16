@@ -1,0 +1,43 @@
+name: anchor
+
+# Each day: save capitalsignal.io/calls.txt and timestamp the copy on the
+# Bitcoin blockchain with OpenTimestamps. No secrets: this repository only
+# reads a public file and commits to itself.
+on:
+  schedule:
+    - cron: "20 8 * * *" # 19:20 Sydney (AEDT), after the ASX close
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  anchor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install opentimestamps-client==0.7.2
+      - name: Snapshot and stamp
+        run: |
+          set -euo pipefail
+          day=$(date -u +%F)
+          mkdir -p snapshots
+          curl -fsS --retry 3 https://capitalsignal.io/calls.txt -o "snapshots/$day.txt"
+          grep -q '^# Capital Signal calls ledger' "snapshots/$day.txt"
+          rm -f "snapshots/$day.txt.ots"
+          ots stamp "snapshots/$day.txt"
+          # A stamp is complete once Bitcoin confirms it, a few hours later:
+          # finish earlier days' proofs. Proofs still waiting are left as they are.
+          for f in snapshots/*.ots; do ots upgrade "$f" || true; done
+          rm -f snapshots/*.ots.bak
+      - name: Commit
+        run: |
+          git config user.name "capsig-ledger"
+          git config user.email "ledger@capitalsignal.io"
+          git add snapshots
+          git diff --cached --quiet || git commit -m "Ledger snapshot $(date -u +%F)"
+          git push
